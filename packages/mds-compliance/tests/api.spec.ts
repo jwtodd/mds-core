@@ -190,7 +190,7 @@ const COUNT_POLICY_JSON_5: Policy = {
       name: 'San Fernando DAC',
       rule_id: '2622242d-7658-43d3-b1c7-3abe46fcabd1',
       rule_type: RULE_TYPES.count,
-      geographies: [SAN_FERNANDO_DAC],
+      geographies: [CITY_OF_LA],
       statuses: { available: [], unavailable: [], reserved: [], trip: [] },
       vehicle_types: [VEHICLE_TYPES.bicycle, VEHICLE_TYPES.scooter],
       maximum: 10,
@@ -1150,17 +1150,21 @@ describe('Tests Compliance API:', () => {
     before(done => {
       const sanFernandoDevices: Device[] = makeDevices(15, now())
       //      const LABeachDevices: Device[] = makeDevices(4, now())
-      const sanFernandoEvents = makeEventsWithTelemetry(
+      console.log('made telemetry')
+      const sanFernandoEvents: (VehicleEvent & { telemetry: Telemetry })[] = makeEventsWithTelemetry(
         sanFernandoDevices,
-        now() - 100000,
-        SAN_FERNANDO_DAC,
+        now(),
+        CITY_OF_LA,
         'trip_end'
-      )
+      ) as (VehicleEvent & { telemetry: Telemetry })[]
+      console.log('done with telemetry')
       //     const LABeachEvents = makeEventsWithTelemetry(LABeachDevices, now() - 100000, LA_BEACH, 'trip_end')
       const sanFernandoTelemetry: Telemetry[] = []
       //    const LABeachTelemetry: Telemetry[] = []
-      sanFernandoDevices.forEach(device => {
-        sanFernandoTelemetry.push(makeTelemetryInArea(device, now(), SAN_FERNANDO_DAC, 10))
+      sanFernandoEvents.forEach(event => {
+        //        sanFernandoTelemetry.push(makeTelemetryInArea(device, now(), SAN_FERNANDO_DAC, 10))
+        console.log('this is the telemetry what got made', event.telemetry)
+        sanFernandoTelemetry.push(event.telemetry)
       })
       /*
       LABeachDevices.forEach(device => {
@@ -1183,7 +1187,7 @@ describe('Tests Compliance API:', () => {
             .expect(201)
             .end((err, result) => {
               test.value(result).hasHeader('content-type', APP_JSON)
-              const geography = { geography_id: SAN_FERNANDO_DAC, geography_json: sanFernandoDAC }
+              const geography = { geography_id: CITY_OF_LA, geography_json: la_city_boundary }
               policy_request
                 .post(`/admin/geographies/${SAN_FERNANDO_DAC}`)
                 .set('Authorization', ADMIN_AUTH)

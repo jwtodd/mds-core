@@ -259,6 +259,10 @@ function pointInShape(
   shape: Geometry | FeatureCollection
 ): boolean {
   const point: [number, number] = Array.isArray(pt) ? pt : [pt.lng, pt.lat]
+  console.log('pointinshape')
+  console.log(point)
+  console.log(shape)
+  console.log('')
   if (shape.type === 'Point') {
     if (pointInPolygon(point, circleToPolygon(shape.coordinates, RADIUS, NUMBER_OF_EDGES))) {
       return true
@@ -292,7 +296,11 @@ function makePointInShape(shape: Geometry): { lat: number; lng: number } {
   let tries = 0
   while (tries < 1000) {
     const pt: [number, number] = [rangeRandom(bbox.lngMin, bbox.lngMax), rangeRandom(bbox.latMin, bbox.latMax)]
-    if (pointInShape(pt, shapeToCreate)) {
+    console.log('make point in shape: ***')
+    console.log('is pointInShape?', pointInShape(pt, shape))
+    console.log(pt, shape)
+    console.log('*******')
+    if (pointInShape(pt, shape)) {
       return {
         lng: pt[0],
         lat: pt[1]

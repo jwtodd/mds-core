@@ -157,6 +157,8 @@ function makeTelemetry(devices: Device[], timestamp: Timestamp): Telemetry[] {
 
 function makeTelemetryInShape(device: Device, timestamp: number, shape: Geometry, speed: number) {
   const point = makePointInShape(shape)
+  console.log('just made the point')
+  console.log(pointInShape(point, shape))
   return {
     device_id: device.device_id,
     provider_id: device.provider_id,

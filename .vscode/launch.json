@@ -192,8 +192,11 @@
         "--timeout",
         "999999",
         "--colors",
-        "--recursive",
-        "'tests/**/*.ts'"
+        "--require",
+        "source-map-support/register",
+        "tests/api.spec.ts",
+        "-g",
+        "'stacking'"
       ],
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen",

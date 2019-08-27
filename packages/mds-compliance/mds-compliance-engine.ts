@@ -23,6 +23,7 @@ import {
   Geography,
   Policy,
   Rule,
+  Telemetry,
   TimeMatch,
   TimeRule,
   VehicleEvent,
@@ -74,6 +75,38 @@ function isInVehicleTypes(rule: Rule, device: Device): boolean {
   return !rule.vehicle_types || (rule.vehicle_types && rule.vehicle_types.includes(device.type))
 }
 
+function doesEventMatchRule(
+  rule: Rule,
+  event: VehicleEvent & { telemetry: Telemetry },
+  device: Device,
+  geographies: Geography[],
+  geography: string
+): boolean {
+  if (isInStatesOrEvents(rule, event) && isInVehicleTypes(rule, device)) {
+    const poly = getPolygon(geographies, geography)
+    if (poly && pointInShape(event.telemetry.gps, poly)) {
+      return true
+    }
+    console.log('not in shape', event.telemetry.gps, poly)
+    return false
+  }
+  return false
+}
+
+function produceMatchData(device: Device, event: VehicleEvent & { telemetry: Telemetry }): MatchedVehicle {
+  return {
+    device_id: device.device_id,
+    provider_id: device.provider_id,
+    vehicle_id: device.vehicle_id,
+    vehicle_type: device.type,
+    vehicle_status: EVENT_STATUS_MAP[event.event_type] as VEHICLE_STATUS,
+    gps: {
+      lat: event.telemetry.gps.lat,
+      lng: event.telemetry.gps.lng
+    }
+  }
+}
+
 function processCountRule(
   rule: CountRule,
   events: VehicleEvent[],
@@ -88,28 +121,27 @@ function processCountRule(
           (matched_vehicles_acc: MatchedVehicle[], event: VehicleEvent): MatchedVehicle[] => {
             const device: Device | undefined = devices[event.device_id]
             if (event.telemetry && device) {
-              if (isInStatesOrEvents(rule, event) && isInVehicleTypes(rule, device)) {
-                const poly = getPolygon(geographies, geography)
-                if (poly && pointInShape(event.telemetry.gps, poly)) {
-                  // push devices that are in violation
-                  matched_vehicles_acc.push({
-                    device_id: device.device_id,
-                    provider_id: device.provider_id,
-                    vehicle_id: device.vehicle_id,
-                    vehicle_type: device.type,
-                    vehicle_status: EVENT_STATUS_MAP[event.event_type] as VEHICLE_STATUS,
-                    gps: {
-                      lat: event.telemetry.gps.lat,
-                      lng: event.telemetry.gps.lng
-                    }
-                  })
-                }
+              if (
+                doesEventMatchRule(
+                  rule,
+                  event as VehicleEvent & { telemetry: Telemetry },
+                  device,
+                  geographies,
+                  geography
+                )
+              ) {
+                console.log('there is a match')
+                // push devices that are in violation
+                matched_vehicles_acc.push(produceMatchData(device, event as VehicleEvent & { telemetry: Telemetry }))
+              } else {
+                console.log('there is not a match')
               }
             }
             return matched_vehicles_acc
           },
           []
         )
+
         matches_acc.push({
           geography_id: geography,
           measured: maximum && matched_vehicles.length > maximum ? maximum : matched_vehicles.length,
