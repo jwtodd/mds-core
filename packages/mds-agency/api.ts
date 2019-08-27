@@ -132,7 +132,7 @@ function api(app: express.Express): express.Express {
       return
     }
     if (device_id && !isUUID(device_id)) {
-      await log.warn('agency: bogus device_id', device_id, req.originalUrl)
+      await log.warn('agency: invalid device_id is not a UUID', device_id, req.originalUrl)
       res.status(400).send({
         error: 'bad_param',
         error_description: `invalid device_id ${device_id} is not a UUID`

@@ -259,8 +259,9 @@ async function readDevice(
   if (res.rows.length === 1) {
     return res.rows[0]
   }
-  await log.info(`readDevice db failed for ${device_id}: rows=${res.rows.length}`)
-  throw new Error(`device_id ${device_id} not found`)
+  const errMsg = `readDevice db failed for ${device_id}`
+  await log.info(`${errMsg}: rows=${res.rows.length}`)
+  throw new Error(errMsg)
 }
 
 async function readDeviceList(device_ids: UUID[]) {
